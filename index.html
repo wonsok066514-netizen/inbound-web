@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCM 입고 일정 요청·회신 및 관리자 통합 시스템</title>
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --card: #ffffff;
+      --text: #161e29;
+      --muted: #5a6678;
+      --line: #d9e1ec;
+      --primary: #1d5fd6;
+      --primary-hover: #1448a6;
+      --success-bg: #e7f6ec;
+      --success-text: #146635;
+      --warn-bg: #fff5db;
+      --warn-text: #8f5600;
+      --danger-bg: #fdeaea;
+      --danger-text: #a61b1b;
+      --info-bg: #eaf2ff;
+      --info-text: #1649a8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .vendor-container {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 18px 14px 48px;
+    }
+
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    h2 { font-size: 17px; margin: 0 0 12px; }
+    h3 { font-size: 15px; margin: 0 0 8px; }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13.5px;
+      margin: 0 0 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .kpi-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row-2 { grid-template-columns: 1fr; }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #2c384a;
+      line-height: 1.3;
+    }
+
+    .control-inline {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="url"],
+    select,
+    textarea {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    textarea {
+      height: auto;
+      padding: 10px 12px;
+    }
+
+    textarea.scm-paste {
+      min-height: 88px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+    }
+
+    textarea.msg-area {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: #f0f4f8; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-danger {
+      background: #fff;
+      border-color: #f3b8b8;
+      color: var(--danger-text);
+    }
+
+    .btn-danger:hover { background: var(--danger-bg); }
+
+    .btn-sm {
+      height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .status-line {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 700;
+      white-space: nowrap;
+      color: #334155;
+    }
+
+    tr.row-delay { background: #fff9f9; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-wait { background: #eef2f6; color: #3d4b5c; }
+    .badge-ok { background: var(--success-bg); color: var(--success-text); }
+    .badge-change { background: var(--warn-bg); color: var(--warn-text); }
+    .badge-check { background: var(--danger-bg); color: var(--danger-text); }
+    .badge-confirmed { background: var(--info-bg); color: var(--info-text); }
+    .badge-delay { background: #fee2e2; color: #991b1b; margin-left: 4px; }
+
+    .preview-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .preview-layout { grid-template-columns: 1fr; }
+    }
+
+    .preview-item-list {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fafc;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .preview-item-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+    }
+
+    .preview-item-card:last-child { margin-bottom: 0; }
+
+    .msg-box {
+      background: #fffbeb;
+      border: 1px solid #f5d061;
+      border-radius: 10px;
+      padding: 14px;
+      white-space: pre-wrap;
+      font-size: 13.5px;
+      min-height: 180px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 999;
+    }
+
+    .modal-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+    }
+
+    .vendor-card {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 15.5px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--muted); font-weight: 600; }
+    .info-val { font-weight: 700; text-align: right; }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .choice-btn.active-ok { border-color: #15803d; background: #f0fdf4; color: #14532d; }
+    .choice-btn.active-change { border-color: #d97706; background: #fffbeb; color: #78350f; }
+    .choice-btn.active-check { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; }
+
+    .chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+
+    .chip-btn {
+      padding: 10px 13px;
+      border-radius: 999px;
+      border: 1px solid #94a3b8;
+      background: #f8fafc;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip-btn.selected {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .submit-big {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .submit-big:hover { background: var(--primary-hover); }
+
+    .success-banner {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid #86efac;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      margin-top: 14px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="adminView" class="container">
+    <h1>SCM 입고 일정 요청·회신 및 관리자 통합 시스템</h1>
+    <p class="subtitle">SCM 복사 데이터 추출 → 업체별·일자별 구글 시트 기록 → 외부 링크 간편 회신 → 이력 수정·삭제 및 납기 모니터링까지 한 번에 관리합니다.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">전체 요청 건수</div>
+        <div id="kpiTotal" class="kpi-value">0</div>
+        <div class="kpi-sub">누적 발송 기준</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">회신 대기 (미응답)</div>
+        <div id="kpiWait" class="kpi-value" style="color:#475569;">0</div>
+        <div class="kpi-sub">독촉·확인 필요 대상</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">요청일 준수 (가능)</div>
+        <div id="kpiOk" class="kpi-value" style="color:#15803d;">0</div>
+        <div class="kpi-sub">요청일 그대로 입고</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">일정 변경 / 확인 필요</div>
+        <div id="kpiRisk" class="kpi-value" style="color:#b45309;">0</div>
+        <div class="kpi-sub">납기 조정 및 리스크 건</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">최종 확정 완료</div>
+        <div id="kpiConfirmed" class="kpi-value" style="color:#1d5fd6;">0</div>
+        <div class="kpi-sub">입고일 확정 반영</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>0. 구글 시트 (Apps Script) 연동 설정</h2>
+      <div class="form-row-2">
+        <div class="field-group">
+          <label for="webAppUrlInput">Apps Script 웹 앱 URL (`.../exec`)</label>
+          <input id="webAppUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+        </div>
+        <div class="field-group">
+          <label>동기화 제어</label>
+          <div class="control-inline">
+            <button type="button" id="saveUrlBtn" class="btn btn-primary">연동 URL 저장</button>
+            <button type="button" id="syncFromSheetBtn" class="btn">시트 최신 회신 불러오기</button>
+          </div>
+        </div>
+      </div>
+      <div id="syncStatus" class="status-line">연동 시 구글 시트의 `전체_통합기록`과 `업체_거래처명` 시트에 일자별로 자동 기록됩니다.</div>
+    </div>
+
+    <div class="card">
+      <h2>1. SCM 복사 데이터 붙여넣기 및 발송 목록 추출</h2>
+      <div class="form-row-2">
+        <div class="field-group">
+          <label for="vendorName">거래처명 (시트 자동 분류 기준)</label>
+          <input id="vendorName" type="text" value="조아1공장" placeholder="예: 조아1공장" />
+        </div>
+        <div class="field-group">
+          <label for="defaultRequestDate">기본 / 일괄 적용 입고 요청일</label>
+          <div class="control-inline">
+            <input id="defaultRequestDate" type="date" value="2026-11-23" />
+            <button type="button" id="applyDateToDraftsBtn" class="btn">초안에 일괄 적용</button>
+          </div>
+        </div>
+      </div>
+
+      <label for="scmPasteArea">SCM 복사 텍스트 (탭 구분 행 여러 줄 가능)</label>
+      <textarea id="scmPasteArea" class="scm-paste" placeholder="SCM에서 복사한 행을 여기에 Ctrl+V로 붙여넣으세요."></textarea>
+
+      <div class="actions">
+        <button type="button" id="parseScmBtn" class="btn btn-primary">복사 데이터 추출하기</button>
+        <button type="button" id="loadScmSampleBtn" class="btn">SCM 샘플 넣기</button>
+        <button type="button" id="clearDraftsBtn" class="btn btn-danger">초안 비우기</button>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>품번</th>
+              <th>품명</th>
+              <th>규격</th>
+              <th>수량</th>
+              <th>오더번호</th>
+              <th>입고 요청일</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="draftBody"></tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="registerDispatchBtn" class="btn btn-primary">발송 목록 확정 (업체별·일자별 시트 저장 및 링크 생성)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. 카카오톡 발송 문구 미리보기</h2>
+      <div class="actions" style="margin-top:0;margin-bottom:12px;">
+        <select id="previewVendorFilter" style="width:auto;min-width:160px;">
+          <option value="ALL">전체 업체 미리보기</option>
+        </select>
+        <button type="button" id="refreshPreviewBtn" class="btn">미리보기 새로고침 (미회신 건 불러오기)</button>
+        <button type="button" id="clearPreviewBtn" class="btn btn-danger">미리보기 일괄 삭제</button>
+        <button type="button" id="copyKakaoBtn" class="btn btn-primary">카톡 문구 복사</button>
+      </div>
+
+      <div class="preview-layout">
+        <div>
+          <label>발송 문구 포함 항목 (1개씩 제외 가능)</label>
+          <div id="previewItemList" class="preview-item-list"></div>
+        </div>
+        <div>
+          <label>생성된 카카오톡 안내 메시지</label>
+          <div id="kakaoPreview" class="msg-box">미리보기에 표시할 항목이 없습니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. 발송 및 회신 이력 관리 (개별 삭제 · 일괄 삭제 · 수정 지원)</h2>
+      <div class="actions" style="margin-top:0;margin-bottom:12px;">
+        <select id="filterVendor" style="width:auto;min-width:150px;">
+          <option value="ALL">업체: 전체</option>
+        </select>
+        <select id="filterStatus" style="width:auto;min-width:160px;">
+          <option value="ALL">상태: 전체</option>
+          <option value="발송완료(회신대기)">회신대기</option>
+          <option value="요청일가능">요청일가능</option>
+          <option value="일정변경">일정변경</option>
+          <option value="재확인필요">재확인필요</option>
+          <option value="확정완료">확정완료</option>
+          <option value="DELAY_ONLY">지연 발생 건만</option>
+        </select>
+        <input id="filterDate" type="date" style="width:auto;" title="발송일자 필터" />
+        <button type="button" id="resetFilterBtn" class="btn">필터 초기화</button>
+        <button type="button" id="deleteSelectedBtn" class="btn btn-danger">선택 건 삭제</button>
+        <button type="button" id="deleteFilteredBtn" class="btn btn-danger">현재 조회 건 일괄 삭제</button>
+        <button type="button" id="refreshTableBtn" class="btn btn-primary">시트 새로고침</button>
+        <button type="button" id="exportCsvBtn" class="btn">CSV 내보내기</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px;"><input type="checkbox" id="selectAllRows" title="전체 선택" /></th>
+              <th>발송일 (일자구분)</th>
+              <th>업체명</th>
+              <th>품번 / 오더번호</th>
+              <th>품명·규격</th>
+              <th>수량</th>
+              <th>입고 요청일</th>
+              <th>상태 / 지연</th>
+              <th>업체 가능일</th>
+              <th>최종 확정일</th>
+              <th>전달사항 / 채널</th>
+              <th>회신일시</th>
+              <th>작업</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="manualModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <h3>회신 대리 입력 및 최종 입고일 확정</h3>
+      <p id="modalSubInfo" class="subtitle"></p>
+
+      <div class="field-group" style="margin-bottom:10px;">
+        <label for="mStatus">진행 상태</label>
+        <select id="mStatus">
+          <option value="요청일가능">요청일가능</option>
+          <option value="일정변경">일정변경</option>
+          <option value="재확인필요">재확인필요</option>
+          <option value="확정완료">확정완료</option>
+          <option value="발송완료(회신대기)">발송완료(회신대기)</option>
+        </select>
+      </div>
+
+      <div class="form-row-2" style="margin-bottom:10px;">
+        <div class="field-group">
+          <label for="mProposedDate">업체 회신 가능일</label>
+          <input id="mProposedDate" type="date" />
+        </div>
+        <div class="field-group">
+          <label for="mConfirmedDate">관리자 최종 확정일</label>
+          <input id="mConfirmedDate" type="date" />
+        </div>
+      </div>
+
+      <div class="form-row-2" style="margin-bottom:10px;">
+        <div class="field-group">
+          <label for="mChannel">회신 채널</label>
+          <select id="mChannel">
+            <option value="전화">전화 확인</option>
+            <option value="카톡">카톡 답장</option>
+            <option value="링크">링크 제출</option>
+            <option value="문자">문자</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="mNote">전달사항 / 통화 메모</label>
+          <input id="mNote" type="text" placeholder="예: 전화 확인 완료, 오후 도착" />
+        </div>
+      </div>
+
+      <div class="actions" style="justify-content:flex-end;">
+        <button type="button" id="closeModalBtn" class="btn">취소</button>
+        <button type="button" id="saveModalBtn" class="btn btn-primary">저장 및 시트 반영</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="vendorView" class="vendor-container hidden">
+    <div class="vendor-card">
+      <h2 id="vTitle">입고 일정 회신</h2>
+      <p class="subtitle" style="margin-bottom:14px;">글자를 길게 쓰지 않으셔도 버튼을 누르고 날짜만 고르시면 됩니다.</p>
+
+      <div id="vInfoBox" class="info-box"></div>
+
+      <label>1. 요청하신 일정에 입고 가능하신가요?</label>
+      <div class="choice-group">
+        <button type="button" id="btnOk" class="choice-btn">✅ 요청일 그대로 가능</button>
+        <button type="button" id="btnChange" class="choice-btn">📅 다른 날짜로 변경</button>
+        <button type="button" id="btnCheck" class="choice-btn">⚠️ 확인 필요 / 해당일 불가</button>
+      </div>
+
+      <div id="datePickerArea" class="hidden" style="margin-bottom:16px;">
+        <label>2. 가능하신 날짜를 골라주세요</label>
+        <div class="chip-wrap">
+          <button type="button" class="chip-btn quick-date" data-offset="1">내일</button>
+          <button type="button" class="chip-btn quick-date" data-offset="2">모레</button>
+          <button type="button" class="chip-btn quick-date" data-weekday="5">금주 금요일</button>
+          <button type="button" class="chip-btn quick-date" data-weekday="8">차주 월요일</button>
+        </div>
+        <input type="date" id="vProposedDate" />
+      </div>
+
+      <label>3. 함께 전하실 말씀이 있으면 눌러주세요 (선택)</label>
+      <div class="chip-wrap" id="noteChips">
+        <button type="button" class="chip-btn note-chip" data-text="오전 가능">오전 가능</button>
+        <button type="button" class="chip-btn note-chip" data-text="오후 가능">오후 가능</button>
+        <button type="button" class="chip-btn note-chip" data-text="도착 전 연락 요망">도착 전 연락 요망</button>
+        <button type="button" class="chip-btn note-chip" data-text="물량 일부만 가능">물량 일부만 가능</button>
+      </div>
+
+      <label for="vMessage">추가 메시지 (직접 적으실 내용)</label>
+      <textarea id="vMessage" class="msg-area" placeholder="예: 오후 2시 이후에 와 주세요."></textarea>
+
+      <button type="button" id="submitReplyBtn" class="submit-big">답변 보내기</button>
+      <div id="vDoneBanner" class="success-banner hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_WEB_APP_URL = "https://github.com/wonsok066514-netizen/123456789";
+    const RECORDS_KEY = "scm_pro_records_v3";
+    const PREVIEW_IDS_KEY = "scm_pro_preview_ids_v3";
+    const URL_STORAGE_KEY = "scm_apps_script_url_v3";
+
+    let draftItems = [];
+    let editingReqId = null;
+
+    function getWebAppUrl() {
+      const paramApi = new URLSearchParams(window.location.search).get("api");
+      if (paramApi) return paramApi.trim();
+      const saved = localStorage.getItem(URL_STORAGE_KEY);
+      if (saved) return saved.trim();
+      return DEFAULT_WEB_APP_URL.trim();
+    }
+
+    function loadLocalRecords() {
+      try {
+        const raw = localStorage.getItem(RECORDS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLocalRecords(list) {
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(list));
+    }
+
+    function loadPreviewIds() {
+      try {
+        const raw = localStorage.getItem(PREVIEW_IDS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function savePreviewIds(ids) {
+      localStorage.setItem(PREVIEW_IDS_KEY, JSON.stringify(ids));
+    }
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function nowStr() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function addDaysStr(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function nextWeekdayStr(targetDayOffset) {
+      const d = new Date();
+      const currentDay = d.getDay();
+      let diff = targetDayOffset - currentDay;
+      if (diff <= 0) diff += 7;
+      d.setDate(d.getDate() + diff);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function normalizeDate(raw, fallback) {
+      if (!raw) return fallback;
+      const cleaned = raw.trim().replace(/\//g, "-");
+      return /^\d{4}-\d{2}-\d{2}$/.test(cleaned) ? cleaned : fallback;
+    }
+
+    function calcDelayDays(reqDate, targetDate) {
+      if (!reqDate || !targetDate) return null;
+      const d1 = new Date(reqDate + "T00:00:00");
+      const d2 = new Date(targetDate + "T00:00:00");
+      if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+      return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    function parseScmText(text, fallbackDate) {
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const parsed = [];
+
+      for (const line of lines) {
+        const cols = line.split("\t").map((c) => c.trim());
+        if (cols.length < 6) continue;
+
+        const partNo = cols[0] || "";
+        const partName = cols[1] || "";
+        const spec = cols[2] || "";
+        const qtyRaw = (cols[5] || cols[10] || "0").replace(/,/g, "");
+        const qty = Number(qtyRaw) || 0;
+        const orderNo = cols[12] || "";
+        const scmReqDate = cols[16] || "";
+
+        if (!partNo && !orderNo) continue;
+
+        parsed.push({
+          part_no: partNo,
+          part_name: partName,
+          spec: spec,
+          part_spec: [partName, spec ? `(${spec})` : ""].filter(Boolean).join(" "),
+          qty: qty,
+          order_no: orderNo,
+          requested_date: normalizeDate(scmReqDate, fallbackDate)
+        });
+      }
+      return parsed;
+    }
+
+    function buildVendorReplyUrl(record) {
+      const base = window.location.href.split("#")[0].split("?")[0];
+      const params = new URLSearchParams();
+      params.set("reply", record.req_id);
+      params.set("vendor", record.vendor_name || "");
+      params.set("part", record.part_no || "");
+      params.set("order", record.order_no || "");
+      params.set("spec", record.part_spec || "");
+      params.set("qty", String(record.qty ?? ""));
+      params.set("reqDate", record.requested_date || "");
+
+      const apiUrl = getWebAppUrl();
+      if (apiUrl && !DEFAULT_WEB_APP_URL) {
+        params.set("api", apiUrl);
+      }
+      return `${base}?${params.toString()}`;
+    }
+
+    async function postToSheet(itemsArray) {
+      const apiUrl = getWebAppUrl();
+      if (!apiUrl) return { skipped: true };
+      await fetch(apiUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ items: itemsArray })
+      });
+      return { ok: true };
+    }
+
+    async function fetchFromSheet() {
+      const apiUrl = getWebAppUrl();
+      const statusEl = document.getElementById("syncStatus");
+      if (!apiUrl) {
+        if (statusEl) statusEl.textContent = "연동할 Apps Script 웹 앱 URL을 먼저 입력해 주세요.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "구글 시트에서 최신 내역을 불러오는 중...";
+      try {
+        const res = await fetch(apiUrl, { method: "GET" });
+        const json = await res.json();
+        if (json && json.ok && Array.isArray(json.records)) {
+          saveLocalRecords(json.records);
+          renderAllAdmin();
+          if (statusEl) statusEl.textContent = `구글 시트 동기화 완료 (${json.records.length}건 · ${nowStr()})`;
+        } else if (statusEl) {
+          statusEl.textContent = "시트 응답 형식을 확인해 주세요.";
+        }
+      } catch (err) {
+        if (statusEl) statusEl.textContent = "시트 조회 오류가 발생했습니다. 배포 권한(모든 사용자)을 확인해 주세요.";
+      }
+    }
+
+    function renderDrafts() {
+      const tbody = document.getElementById("draftBody");
+      if (!draftItems.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;">추출된 항목이 없습니다. SCM 복사 텍스트를 붙여넣고 '복사 데이터 추출하기'를 눌러주세요.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = draftItems.map((item, idx) => `
+        <tr>
+          <td><strong>${item.part_no}</strong></td>
+          <td>${item.part_name || "-"}</td>
+          <td>${item.spec || "-"}</td>
+          <td><input type="number" min="1" value="${item.qty}" onchange="updateDraft(${idx}, 'qty', Number(this.value))" style="width:84px;height:32px;" /></td>
+          <td>${item.order_no || "-"}</td>
+          <td><input type="date" value="${item.requested_date}" onchange="updateDraft(${idx}, 'requested_date', this.value)" style="height:32px;" /></td>
+          <td><button type="button" class="btn btn-sm btn-danger" onclick="removeDraft(${idx})">삭제</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function updateDraft(idx, key, val) {
+      if (draftItems[idx]) draftItems[idx][key] = val;
+    }
+
+    function removeDraft(idx) {
+      draftItems.splice(idx, 1);
+      renderDrafts();
+    }
+
+    function renderKpis(records) {
+      const total = records.length;
+      const wait = records.filter((r) => r.status === "발송완료(회신대기)").length;
+      const ok = records.filter((r) => r.status === "요청일가능").length;
+      const risk = records.filter((r) => r.status === "일정변경" || r.status === "재확인필요").length;
+      const confirmed = records.filter((r) => r.status === "확정완료").length;
+
+      document.getElementById("kpiTotal").textContent = total;
+      document.getElementById("kpiWait").textContent = wait;
+      document.getElementById("kpiOk").textContent = ok;
+      document.getElementById("kpiRisk").textContent = risk;
+      document.getElementById("kpiConfirmed").textContent = confirmed;
+    }
+
+    function syncVendorDropdowns(records) {
+      const vendors = Array.from(new Set(records.map((r) => r.vendor_name).filter(Boolean)));
+      const pSel = document.getElementById("previewVendorFilter");
+      const fSel = document.getElementById("filterVendor");
+      const curP = pSel.value;
+      const curF = fSel.value;
+
+      pSel.innerHTML = `<option value="ALL">전체 업체 미리보기</option>` +
+        vendors.map((v) => `<option value="${v}">${v}</option>`).join("");
+      fSel.innerHTML = `<option value="ALL">업체: 전체</option>` +
+        vendors.map((v) => `<option value="${v}">${v}</option>`).join("");
+
+      if (vendors.includes(curP)) pSel.value = curP;
+      if (vendors.includes(curF)) fSel.value = curF;
+    }
+
+    function renderKakaoPreview() {
+      const records = loadLocalRecords();
+      const previewIds = new Set(loadPreviewIds());
+      const vendorFilter = document.getElementById("previewVendorFilter").value;
+
+      let activeItems = records.filter((r) => previewIds.has(r.req_id));
+      if (vendorFilter !== "ALL") {
+        activeItems = activeItems.filter((r) => r.vendor_name === vendorFilter);
+      }
+
+      const listEl = document.getElementById("previewItemList");
+      const boxEl = document.getElementById("kakaoPreview");
+
+      if (!activeItems.length) {
+        listEl.innerHTML = `<div style="color:#64748b;font-size:13px;padding:12px;text-align:center;">표시할 항목이 없습니다.<br>'미리보기 새로고침'을 누르거나 새 발송 건을 등록하세요.</div>`;
+        boxEl.textContent = "미리보기에 표시할 항목이 없습니다.";
+        return;
+      }
+
+      listEl.innerHTML = activeItems.map((r) => `
+        <div class="preview-item-card">
+          <div>
+            <strong>[${r.vendor_name}] ${r.part_no}</strong> (${r.order_no})<br/>
+            <span style="color:#5a6678;">수량 ${r.qty} · 요청일 ${r.requested_date}</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-danger" onclick="removeOneFromPreview('${r.req_id}')">삭제</button>
+        </div>
+      `).join("");
+
+      const grouped = {};
+      activeItems.forEach((r) => {
+        const v = r.vendor_name || "외부업체";
+        if (!grouped[v]) grouped[v] = [];
+        grouped[v].push(r);
+      });
+
+      const blocks = Object.entries(grouped).map(([vendor, items]) => {
+        const lines = items.map((r, i) => {
+          const link = buildVendorReplyUrl(r);
+          return `${i + 1}) 품번/오더: ${r.part_no} / ${r.order_no}\n   품명·규격: ${r.part_spec || "-"} | 수량: ${r.qty} | 요청일: ${r.requested_date}\n   회신 링크: ${link}`;
+        });
+        return `[입고 일정 요청 - ${vendor}]\n안녕하세요. 아래 항목 입고 가능 일정을 확인 부탁드립니다.\n\n${lines.join("\n\n")}\n\n▶ 위 링크를 누르시면 버튼과 날짜 선택으로 간편하게 답하실 수 있습니다.`;
+      });
+
+      boxEl.textContent = blocks.join("\n\n------------------------------\n\n");
+    }
+
+    function removeOneFromPreview(reqId) {
+      const next = loadPreviewIds().filter((id) => id !== reqId);
+      savePreviewIds(next);
+      renderKakaoPreview();
+    }
+
+    function addOneToPreview(reqId) {
+      const set = new Set(loadPreviewIds());
+      set.add(reqId);
+      savePreviewIds(Array.from(set));
+      renderKakaoPreview();
+    }
+
+    function getFilteredRecords() {
+      const records = loadLocalRecords();
+      const fVendor = document.getElementById("filterVendor").value;
+      const fStatus = document.getElementById("filterStatus").value;
+      const fDate = document.getElementById("filterDate").value;
+
+      return records.filter((r) => {
+        if (fVendor !== "ALL" && r.vendor_name !== fVendor) return false;
+        if (fDate && r.dispatch_date !== fDate) return false;
+        const delay = calcDelayDays(r.requested_date, r.confirmed_date || r.proposed_date);
+        if (fStatus === "DELAY_ONLY") {
+          return delay !== null && delay > 0;
+        }
+        if (fStatus !== "ALL" && r.status !== fStatus) return false;
+        return true;
+      });
+    }
+
+    function deleteRecordsByIds(idsToDelete) {
+      const idSet = new Set(idsToDelete);
+      if (!idSet.size) return;
+
+      const remaining = loadLocalRecords().filter((r) => !idSet.has(r.req_id));
+      saveLocalRecords(remaining);
+
+      const remainingPreview = loadPreviewIds().filter((id) => !idSet.has(id));
+      savePreviewIds(remainingPreview);
+
+      document.getElementById("selectAllRows").checked = false;
+      renderAllAdmin();
+    }
+
+    function deleteSingleRecord(reqId) {
+      if (!confirm(`요청 ID [${reqId}] 항목을 이력 표에서 삭제할까요?`)) return;
+      deleteRecordsByIds([reqId]);
+    }
+
+    function badgeHtml(status) {
+      if (status === "요청일가능") return `<span class="badge badge-ok">${status}</span>`;
+      if (status === "일정변경") return `<span class="badge badge-change">${status}</span>`;
+      if (status === "재확인필요") return `<span class="badge badge-check">${status}</span>`;
+      if (status === "확정완료") return `<span class="badge badge-confirmed">${status}</span>`;
+      return `<span class="badge badge-wait">${status}</span>`;
+    }
+
+    function renderRecordsTable() {
+      const filtered = getFilteredRecords();
+      const tbody = document.getElementById("recordsBody");
+      document.getElementById("selectAllRows").checked = false;
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#64748b;">조건에 맞는 발송·회신 내역이 없습니다.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((r) => {
+        const url = buildVendorReplyUrl(r);
+        const delay = calcDelayDays(r.requested_date, r.confirmed_date || r.proposed_date);
+        const delayBadge = (delay !== null && delay > 0)
+          ? `<span class="badge badge-delay">+${delay}일 지연</span>`
+          : "";
+        const noteCombined = [r.selected_chips, r.vendor_message].filter(Boolean).join(" / ");
+        return `
+          <tr class="${delay !== null && delay > 0 ? "row-delay" : ""}">
+            <td><input type="checkbox" class="row-check" value="${r.req_id}" /></td>
+            <td><strong>${r.dispatch_date || "-"}</strong><br><span style="color:#64748b;font-size:11.5px;">${r.req_id}</span></td>
+            <td><strong>${r.vendor_name || "-"}</strong></td>
+            <td>${r.part_no || "-"}<br><span style="color:#64748b;">${r.order_no || "-"}</span></td>
+            <td>${r.part_spec || "-"}</td>
+            <td>${r.qty ?? "-"}</td>
+            <td>${r.requested_date || "-"}</td>
+            <td>${badgeHtml(r.status || "발송완료(회신대기)")}${delayBadge}</td>
+            <td>${r.proposed_date || "-"}</td>
+            <td><strong>${r.confirmed_date || "-"}</strong></td>
+            <td>${noteCombined || "-"}<br><span style="color:#64748b;font-size:11.5px;">채널: ${r.channel || "링크"}</span></td>
+            <td>${r.replied_at || "-"}</td>
+            <td>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                <button type="button" class="btn btn-sm" onclick="addOneToPreview('${r.req_id}')">카톡담기</button>
+                <button type="button" class="btn btn-sm" onclick="openManualModal('${r.req_id}')">수정/확정</button>
+                <a class="btn btn-sm btn-primary" href="${url}" target="_blank" rel="noopener">링크</a>
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteSingleRecord('${r.req_id}')">삭제</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderAllAdmin() {
+      const records = loadLocalRecords();
+      renderKpis(records);
+      syncVendorDropdowns(records);
+      renderKakaoPreview();
+      renderRecordsTable();
+    }
+
+    function openManualModal(reqId) {
+      const records = loadLocalRecords();
+      const target = records.find((r) => r.req_id === reqId);
+      if (!target) return;
+
+      editingReqId = reqId;
+      document.getElementById("modalSubInfo").textContent =
+        `${target.vendor_name} · ${target.part_no} (${target.order_no}) · 요청일 ${target.requested_date}`;
+      document.getElementById("mStatus").value = target.status === "발송완료(회신대기)" ? "확정완료" : target.status;
+      document.getElementById("mProposedDate").value = target.proposed_date || target.requested_date || "";
+      document.getElementById("mConfirmedDate").value = target.confirmed_date || target.proposed_date || target.requested_date || "";
+      document.getElementById("mChannel").value = target.channel || "전화";
+      document.getElementById("mNote").value = target.vendor_message || "";
+      document.getElementById("manualModal").classList.remove("hidden");
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => alert("복사되었습니다.")).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      alert("복사되었습니다.");
+    }
+
+    function initAdminEvents() {
+      const urlInput = document.getElementById("webAppUrlInput");
+      urlInput.value = getWebAppUrl();
+
+      document.getElementById("saveUrlBtn").addEventListener("click", () => {
+        const val = urlInput.value.trim();
+        localStorage.setItem(URL_STORAGE_KEY, val);
+        document.getElementById("syncStatus").textContent = val
+          ? "연동 URL이 저장되었습니다."
+          : "연동 URL이 비어 있습니다.";
+        renderKakaoPreview();
+      });
+
+      document.getElementById("syncFromSheetBtn").addEventListener("click", fetchFromSheet);
+      document.getElementById("refreshTableBtn").addEventListener("click", fetchFromSheet);
+
+      document.getElementById("loadScmSampleBtn").addEventListener("click", () => {
+        document.getElementById("scmPasteArea").value =
+          "MC11007416A\t#1 PINION GEAR\tM2*34T\tSNCM420H\t2/BC\t6 \t750,000 \t\t \t125,000 \t6 \t750,000 \tM2609S400049\t0100 (*HCPG1.2)\t2027/01/02\t2026/09/08\t2026/11/23\t0\t\t\t미연결\t\t2026-09-08\n" +
+          "1AH0801\tBODY\tØ210*91\t15B36CR\t2/EA\t100 \t850,600 \t\t \t8,506 \t100 \t850,600 \tM2606S500008\t0090 (*HQI-CH)\t2026/12/30\t2026/11/24\t2026/11/23\t0\t11/20일 H630공정대기\t\t미연결\t\t2026-06-15";
+      });
+
+      document.getElementById("parseScmBtn").addEventListener("click", () => {
+        const rawText = document.getElementById("scmPasteArea").value;
+        const fallbackDate = document.getElementById("defaultRequestDate").value || todayStr();
+        const extracted = parseScmText(rawText, fallbackDate);
+        if (!extracted.length) {
+          alert("추출할 수 있는 탭 구분 행을 찾지 못했습니다.");
+          return;
+        }
+        draftItems = [...draftItems, ...extracted];
+        renderDrafts();
+      });
+
+      document.getElementById("applyDateToDraftsBtn").addEventListener("click", () => {
+        const chosen = document.getElementById("defaultRequestDate").value;
+        if (!chosen || !draftItems.length) return;
+        draftItems = draftItems.map((it) => ({ ...it, requested_date: chosen }));
+        renderDrafts();
+      });
+
+      document.getElementById("clearDraftsBtn").addEventListener("click", () => {
+        draftItems = [];
+        renderDrafts();
+      });
+
+      document.getElementById("registerDispatchBtn").addEventListener("click", async () => {
+        if (!draftItems.length) {
+          alert("먼저 발송할 항목을 추출해 주세요.");
+          return;
+        }
+        const vendorName = document.getElementById("vendorName").value.trim() || "미지정업체";
+        const existing = loadLocalRecords();
+        const created = draftItems.map((it, idx) => {
+          const uniqueSuffix = `${Date.now().toString().slice(-4)}${idx + 1}`;
+          return {
+            req_id: `REQ-${todayStr().replace(/-/g, "")}-${uniqueSuffix}`,
+            dispatch_date: todayStr(),
+            month_key: todayStr().slice(0, 7),
+            vendor_name: vendorName,
+            part_no: it.part_no,
+            order_no: it.order_no,
+            part_spec: it.part_spec,
+            qty: it.qty,
+            requested_date: it.requested_date,
+            status: "발송완료(회신대기)",
+            reply_type: "",
+            proposed_date: "",
+            confirmed_date: "",
+            channel: "링크",
+            selected_chips: "",
+            vendor_message: "",
+            replied_at: "",
+            history_log: `[${nowStr()}] 발송등록`
+          };
+        });
+
+        saveLocalRecords([...created, ...existing]);
+
+        const previewSet = new Set(loadPreviewIds());
+        created.forEach((c) => previewSet.add(c.req_id));
+        savePreviewIds(Array.from(previewSet));
+
+        draftItems = [];
+        renderDrafts();
+        renderAllAdmin();
+
+        if (getWebAppUrl()) {
+          document.getElementById("syncStatus").textContent = "구글 시트(통합 및 업체별 시트)에 저장 중...";
+          await postToSheet(created);
+          document.getElementById("syncStatus").textContent = `시트 저장 완료 (${vendorName} · ${created.length}건)`;
+        }
+      });
+
+      document.getElementById("previewVendorFilter").addEventListener("change", renderKakaoPreview);
+
+      document.getElementById("refreshPreviewBtn").addEventListener("click", () => {
+        const records = loadLocalRecords();
+        const waitingIds = records
+          .filter((r) => r.status === "발송완료(회신대기)")
+          .map((r) => r.req_id);
+        savePreviewIds(waitingIds);
+        renderKakaoPreview();
+      });
+
+      document.getElementById("clearPreviewBtn").addEventListener("click", () => {
+        savePreviewIds([]);
+        renderKakaoPreview();
+      });
+
+      document.getElementById("copyKakaoBtn").addEventListener("click", () => {
+        copyText(document.getElementById("kakaoPreview").textContent);
+      });
+
+      document.getElementById("filterVendor").addEventListener("change", renderRecordsTable);
+      document.getElementById("filterStatus").addEventListener("change", renderRecordsTable);
+      document.getElementById("filterDate").addEventListener("change", renderRecordsTable);
+      document.getElementById("resetFilterBtn").addEventListener("click", () => {
+        document.getElementById("filterVendor").value = "ALL";
+        document.getElementById("filterStatus").value = "ALL";
+        document.getElementById("filterDate").value = "";
+        renderRecordsTable();
+      });
+
+      document.getElementById("selectAllRows").addEventListener("change", (e) => {
+        const checked = e.target.checked;
+        document.querySelectorAll(".row-check").forEach((cb) => {
+          cb.checked = checked;
+        });
+      });
+
+      document.getElementById("deleteSelectedBtn").addEventListener("click", () => {
+        const checkedIds = Array.from(document.querySelectorAll(".row-check:checked")).map((cb) => cb.value);
+        if (!checkedIds.length) {
+          alert("삭제할 행의 체크박스를 먼저 선택해 주세요.");
+          return;
+        }
+        if (!confirm(`선택한 ${checkedIds.length}건을 이력 표에서 삭제할까요?`)) return;
+        deleteRecordsByIds(checkedIds);
+      });
+
+      document.getElementById("deleteFilteredBtn").addEventListener("click", () => {
+        const visibleRows = getFilteredRecords();
+        if (!visibleRows.length) {
+          alert("삭제할 조회 내역이 없습니다.");
+          return;
+        }
+        if (!confirm(`현재 화면에 조회된 ${visibleRows.length}건을 일괄 삭제할까요?`)) return;
+        deleteRecordsByIds(visibleRows.map((r) => r.req_id));
+      });
+
+      document.getElementById("closeModalBtn").addEventListener("click", () => {
+        document.getElementById("manualModal").classList.add("hidden");
+        editingReqId = null;
+      });
+
+      document.getElementById("saveModalBtn").addEventListener("click", async () => {
+        if (!editingReqId) return;
+        const list = loadLocalRecords();
+        const idx = list.findIndex((r) => r.req_id === editingReqId);
+        if (idx === -1) return;
+
+        const nextStatus = document.getElementById("mStatus").value;
+        const nextProp = document.getElementById("mProposedDate").value;
+        const nextConf = document.getElementById("mConfirmedDate").value;
+        const nextChannel = document.getElementById("mChannel").value;
+        const nextNote = document.getElementById("mNote").value.trim();
+        const now = nowStr();
+
+        const updated = {
+          ...list[idx],
+          status: nextStatus,
+          proposed_date: nextProp,
+          confirmed_date: nextConf,
+          channel: nextChannel,
+          vendor_message: nextNote,
+          replied_at: list[idx].replied_at || now,
+          history_log: [list[idx].history_log, `[${now}] 관리자갱신(${nextStatus}/${nextChannel})`].filter(Boolean).join(" | ")
+        };
+
+        list[idx] = updated;
+        saveLocalRecords(list);
+        document.getElementById("manualModal").classList.add("hidden");
+        editingReqId = null;
+        renderAllAdmin();
+
+        if (getWebAppUrl()) {
+          await postToSheet([updated]);
+        }
+      });
+
+      document.getElementById("exportCsvBtn").addEventListener("click", () => {
+        const records = loadLocalRecords();
+        const headers = [
+          "req_id", "dispatch_date", "vendor_name", "part_no", "order_no",
+          "part_spec", "qty", "requested_date", "status", "proposed_date",
+          "confirmed_date", "channel", "selected_chips", "vendor_message", "replied_at", "history_log"
+        ];
+        const rows = [
+          headers.join(","),
+          ...records.map((r) =>
+            headers.map((h) => `"${String(r[h] ?? "").replace(/"/g, '""')}"`).join(",")
+          )
+        ];
+        const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `입고일정_통합기록_${todayStr()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function initVendorView(params) {
+      document.getElementById("adminView").classList.add("hidden");
+      document.getElementById("vendorView").classList.remove("hidden");
+
+      const reqId = params.get("reply");
+      const localFound = loadLocalRecords().find((r) => r.req_id === reqId);
+
+      const target = {
+        req_id: reqId,
+        vendor_name: params.get("vendor") || (localFound && localFound.vendor_name) || "외부업체",
+        part_no: params.get("part") || (localFound && localFound.part_no) || "-",
+        order_no: params.get("order") || (localFound && localFound.order_no) || "-",
+        part_spec: params.get("spec") || (localFound && localFound.part_spec) || "-",
+        qty: params.get("qty") || (localFound && localFound.qty) || "-",
+        requested_date: params.get("reqDate") || (localFound && localFound.requested_date) || todayStr()
+      };
+
+      document.getElementById("vTitle").textContent = `${target.vendor_name} · 입고 일정 회신`;
+      document.getElementById("vInfoBox").innerHTML = `
+        <div class="info-row"><span class="info-label">품번 / 오더</span><span class="info-val">${target.part_no} / ${target.order_no}</span></div>
+        <div class="info-row"><span class="info-label">품명 · 규격</span><span class="info-val">${target.part_spec}</span></div>
+        <div class="info-row"><span class="info-label">요청 수량</span><span class="info-val">${target.qty}</span></div>
+        <div class="info-row"><span class="info-label">입고 요청일</span><span class="info-val">${target.requested_date}</span></div>
+      `;
+
+      let selectedType = (localFound && localFound.reply_type) || "ON_REQUEST_DATE";
+      const dateArea = document.getElementById("datePickerArea");
+      const dateInput = document.getElementById("vProposedDate");
+      const msgInput = document.getElementById("vMessage");
+      const chipSet = new Set(
+        ((localFound && localFound.selected_chips) || "").split(" / ").map((s) => s.trim()).filter(Boolean)
+      );
+
+      dateInput.value = (localFound && localFound.proposed_date) || target.requested_date;
+      msgInput.value = (localFound && localFound.vendor_message) || "";
+
+      function syncTypeButtons() {
+        const bOk = document.getElementById("btnOk");
+        const bCh = document.getElementById("btnChange");
+        const bCk = document.getElementById("btnCheck");
+        bOk.classList.remove("active-ok");
+        bCh.classList.remove("active-change");
+        bCk.classList.remove("active-check");
+
+        if (selectedType === "ON_REQUEST_DATE") {
+          bOk.classList.add("active-ok");
+          dateArea.classList.add("hidden");
+        } else if (selectedType === "DATE_CHANGED") {
+          bCh.classList.add("active-change");
+          dateArea.classList.remove("hidden");
+        } else {
+          bCk.classList.add("active-check");
+          dateArea.classList.add("hidden");
+        }
+      }
+
+      function syncChips() {
+        document.querySelectorAll(".note-chip").forEach((btn) => {
+          btn.classList.toggle("selected", chipSet.has(btn.dataset.text));
+        });
+      }
+
+      document.getElementById("btnOk").addEventListener("click", () => {
+        selectedType = "ON_REQUEST_DATE";
+        dateInput.value = target.requested_date;
+        syncTypeButtons();
+      });
+
+      document.getElementById("btnChange").addEventListener("click", () => {
+        selectedType = "DATE_CHANGED";
+        syncTypeButtons();
+      });
+
+      document.getElementById("btnCheck").addEventListener("click", () => {
+        selectedType = "NEED_CHECK";
+        syncTypeButtons();
+      });
+
+      document.querySelectorAll(".quick-date").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (btn.dataset.offset) dateInput.value = addDaysStr(Number(btn.dataset.offset));
+          else if (btn.dataset.weekday) dateInput.value = nextWeekdayStr(Number(btn.dataset.weekday));
+        });
+      });
+
+      document.querySelectorAll(".note-chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.dataset.text;
+          if (chipSet.has(val)) chipSet.delete(val);
+          else chipSet.add(val);
+          syncChips();
+        });
+      });
+
+      const submitBtn = document.getElementById("submitReplyBtn");
+      submitBtn.addEventListener("click", async () => {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "전송 중...";
+
+        const chipsStr = Array.from(chipSet).join(" / ");
+        const msgStr = msgInput.value.trim();
+        const now = nowStr();
+
+        let nextStatus = "요청일가능";
+        let nextProposedDate = target.requested_date;
+
+        if (selectedType === "DATE_CHANGED") {
+          nextStatus = "일정변경";
+          nextProposedDate = dateInput.value || target.requested_date;
+        } else if (selectedType === "NEED_CHECK") {
+          nextStatus = "재확인필요";
+          nextProposedDate = "";
+        }
+
+        const logEntry = `[${now}] ${nextStatus}${nextProposedDate ? `(${nextProposedDate})` : ""}`;
+        const payload = {
+          is_reply: true,
+          req_id: target.req_id,
+          vendor_name: target.vendor_name,
+          part_no: target.part_no,
+          order_no: target.order_no,
+          part_spec: target.part_spec,
+          qty: target.qty,
+          requested_date: target.requested_date,
+          status: nextStatus,
+          reply_type: selectedType,
+          proposed_date: nextProposedDate,
+          channel: "링크",
+          selected_chips: chipsStr,
+          vendor_message: msgStr,
+          replied_at: now,
+          history_log: logEntry
+        };
+
+        const list = loadLocalRecords();
+        const idx = list.findIndex((r) => r.req_id === reqId);
+        if (idx !== -1) {
+          list[idx] = { ...list[idx], ...payload };
+          saveLocalRecords(list);
+        }
+
+        try {
+          await postToSheet([payload]);
+          const banner = document.getElementById("vDoneBanner");
+          banner.classList.remove("hidden");
+          banner.textContent = `답변이 전송되었습니다 (${nextStatus}${nextProposedDate ? " · " + nextProposedDate : ""}). 감사합니다.`;
+        } catch (err) {
+          alert("전송 중 네트워크 오류가 발생했습니다. 잠시 후 다시 눌러주세요.");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "답변 보내기";
+        }
+      });
+
+      syncTypeButtons();
+      syncChips();
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("reply")) {
+      initVendorView(urlParams);
+    } else {
+      initAdminEvents();
+      renderDrafts();
+      renderAllAdmin();
+      if (getWebAppUrl()) fetchFromSheet();
+    }
+  </script>
+</body>
+</html>
